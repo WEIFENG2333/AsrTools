@@ -21,7 +21,7 @@
 
 *主界面截图示例*
 
-![主界面](resources/main_window.png)
+<img src="resources/main_window.png" width="80%" alt="主界面">
 
 ---
 ## 🖥️ **快速上手**
@@ -35,13 +35,15 @@
 
 我们为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
 
-### 📥 **1. 从发布版本安装**
+###  **1. 从发布版本安装**
 
 1. **下载 Release**：访问 [Release 页面](https://github.com/WEIFENG2333/AsrTools/releases) 并下载最新的可执行文件压缩包。
 2. **解压文件**：将下载的压缩包解压到您的目标目录。
 3. **启动应用**：运行解压后的可执行文件，即可启动 GUI 界面。
 
-### 🖥️ **2. 从源码安装（开发者）**
+---
+
+###  **2. 从源码安装（开发者）**
 
 如果您想从源码运行，请按照以下步骤操作：
 
@@ -90,12 +92,6 @@ print(txt)
 
 ---
 
-## 📄 **许可证**
-
-本项目采用 [MIT 许可证](https://opensource.org/licenses/MIT)。详情请参阅 [LICENSE](https://github.com/WEIFENG2333/AsrTools/blob/main/LICENSE) 文件。
-
----
-
 ## 📬 **联系与支持**
 
 如果您在使用过程中遇到任何问题或有任何建议，欢迎通过以下方式联系我们：
@@ -103,8 +99,14 @@ print(txt)
 - **邮件**：2715673327@qq.com
 - **Issues**：[提交问题](https://github.com/WEIFENG2333/AsrTools/issues)
 
----
-
 感谢您使用 **AsrTools**！🎉  
 希望这款工具能为您的工作和生活带来便利。😊
+
+---
+
+ ## 📄 **许可证**
+
+本项目采用 [GNU 通用公共许可证第3版（GPL-3.0）](https://www.gnu.org/licenses/gpl-3.0.en.html)。详情请参阅 [LICENSE](https://github.com/WEIFENG2333/AsrTools/blob/main/LICENSE) 文件。
+
+
 
