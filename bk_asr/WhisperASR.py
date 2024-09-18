@@ -5,14 +5,7 @@ from openai import OpenAI
 from .ASRData import ASRDataSeg
 from .BaseASR import BaseASR
 
-# os.environ['OPENAI_BASE_URL'] = 'https://api.b3n.fun/v1'
-# os.environ['OPENAI_API_KEY'] = 'sk-EsDfdxVqp8NA0rMiD8B099AbC0A447AfB6301eA31aDe771d'
-# MODEL = "whisper-1"
 
-os.environ['OPENAI_BASE_URL'] = 'https://api.groq.com/openai/v1/'
-os.environ['OPENAI_API_KEY'] = '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'
-MODEL = "whisper-large-v3"
-# MODEL = "whisper-1"
 
 class WhisperASR(BaseASR):
     def __init__(self, audio_path: [str, bytes], model: str = MODEL, use_cache: bool = False):

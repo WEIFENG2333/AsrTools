@@ -5,4 +5,7 @@
     <orderEntry type="jdk" jdkName="Python 3.10 (AsrTools)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
+  <component name="PackageRequirementsSettings">
+    <option name="modifyBaseFiles" value="true" />
+  </component>
 </module>

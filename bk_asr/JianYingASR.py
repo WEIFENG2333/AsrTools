@@ -52,7 +52,6 @@ class JianYingASR(BaseASR):
         headers = self._build_headers(device_time, sign)
         response = requests.post(url, json=payload, headers=headers)
         query_id = response.json()['data']['id']
-        print("Task submitted successfully.")
         return query_id
 
     def upload(self):
@@ -75,7 +74,6 @@ class JianYingASR(BaseASR):
                                                            tdid='3943278516897751')
         headers = self._build_headers(device_time, sign)
         response = requests.post(url, json=payload, headers=headers)
-        print("Task queried successfully.")
         return response.json()
 
     def _run(self):
@@ -121,7 +119,6 @@ class JianYingASR(BaseASR):
         self.access_key = login_data['data']['access_key_id']
         self.secret_key = login_data['data']['secret_access_key']
         self.session_token = login_data['data']['session_token']
-        print("Upload sign retrieved successfully.")
         return self.access_key, self.secret_key, self.session_token
 
     def _upload_auth(self):
@@ -144,7 +141,6 @@ class JianYingASR(BaseASR):
         headers["authorization"] = authorization
         response = requests.get(f"https://vod.bytedanceapi.com/?{request_parameters}", headers=headers)
         store_infos = response.json()
-        print("Upload authorization retrieved successfully.")
 
         self.store_uri = store_infos['Result']['UploadAddress']['StoreInfos'][0]['StoreUri']
         self.auth = store_infos['Result']['UploadAddress']['StoreInfos'][0]['Auth']
@@ -165,7 +161,6 @@ class JianYingASR(BaseASR):
         response = requests.put(url, data=self.file_binary, headers=headers)
         resp_data = response.json()
         assert resp_data['success'] == 0, f"File upload failed: {response.text}"
-        print("File uploaded successfully.")
         return resp_data
 
     def _upload_check(self):
@@ -179,7 +174,6 @@ class JianYingASR(BaseASR):
         }
         response = requests.post(url, data=payload, headers=headers)
         resp_data = response.json()
-        print("Upload check successful.")
         return resp_data
 
     def _upload_commit(self):
@@ -191,7 +185,6 @@ class JianYingASR(BaseASR):
             'Content-CRC32': self.crc32_hex,
         }
         response = requests.put(url, data=self.file_binary, headers=headers)
-        print("File committed successfully.")
         return self.store_uri
 
 
@@ -235,30 +228,7 @@ def aws_signature(secret_key: str, request_parameters: str, headers: Dict[str, s
 
 if __name__ == '__main__':
     # Example usage
-    # from SubtitleOptimizer import SubtitleOptimizer
-    # from SubtitleSummarizer import SubtitleSummarizer
-
-    print("[+]正在转换音频文件...")
-    # Example usage
-    audio_file = r"C:\Users\weifeng\Music\低视力音乐助人者_mp4.mp3"
+    audio_file = r"test.mp3"
     asr = JianYingASR(audio_file)
     asr_data = asr.run()
     print(asr_data)
-
-    # asr_data.to_srt(save_path="subtitles0.srt")
-
-    # print("[+]正在优化字幕...")
-    # subtitle_json = asr_data.to_json()
-    # summarize_result = SubtitleSummarizer().summarize(asr_data.to_txt())
-    # print(summarize_result)
-    # optimizer = SubtitleOptimizer(summarize_result=summarize_result)
-    # optimizer_result = optimizer.optimizer_multi_thread(subtitle_json, batch_num=100, thread_num=10)
-    #
-    # for i, subtitle_text in optimizer_result.items():
-    #     seg = asr_data.segments[int(i)]
-    #     seg.text = subtitle_text
-    # asr_data.to_srt(save_path="subtitles.srt")
-    #
-    # print("[+]正在添加字幕...")
-    # subtitle_file = "subtitles.srt"
-    # add_subtitles(input_file, subtitle_file, "output.mp4", log='quiet', soft_subtitle=True)

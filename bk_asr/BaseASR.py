@@ -1,13 +1,14 @@
 import json
 import os
 import zlib
+import tempfile
 
 from .ASRData import ASRDataSeg, ASRData
 
 
 class BaseASR:
     SUPPORTED_SOUND_FORMAT = ["flac", "m4a", "mp3", "wav"]
-    CACHE_FILE = "asr_cache.json"
+    CACHE_FILE = os.path.join(tempfile.gettempdir(), "bk_asr", "asr_cache.json")
 
     def __init__(self, audio_path: [str, bytes], use_cache: bool = False):
         self.audio_path = audio_path
@@ -17,17 +18,28 @@ class BaseASR:
         self.use_cache = use_cache
 
         self._set_data()
+
         self.cache = self._load_cache()
 
     def _load_cache(self):
+        if not self.use_cache:
+            return {}
+        os.makedirs(os.path.dirname(self.CACHE_FILE), exist_ok=True)
         if os.path.exists(self.CACHE_FILE):
             with open(self.CACHE_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
+                cache = json.load(f)
+                if not isinstance(cache, dict):
+                    return {}
+                return cache
         return {}
 
     def _save_cache(self):
+        if not self.use_cache:
+            return
         with open(self.CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(self.cache, f, ensure_ascii=False, indent=2)
+        if os.path.exists(self.CACHE_FILE) and os.path.getsize(self.CACHE_FILE) > 5 * 1024 * 1024:
+            os.remove(self.CACHE_FILE)
 
     def _set_data(self):
         if isinstance(self.audio_path, bytes):

@@ -1,28 +1,25 @@
-import os
-import sys
-import subprocess
-import platform
 import logging
+import os
+import platform
+import subprocess
+import sys
 
-from PySide6.QtCore import Qt, QRunnable, QThreadPool, QObject, Signal, Slot
-from PySide6.QtGui import QCursor, QColor
-from PySide6.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog,
+from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot
+from PyQt5.QtGui import QCursor, QColor
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog,
                                QTableWidgetItem, QHeaderView, QSizePolicy)
 from qfluentwidgets import (ComboBox, PushButton, LineEdit, TableWidget, FluentIcon as FIF,
                             Action, RoundMenu, InfoBar, InfoBarPosition,
                             FluentWindow)
 
-from bk_asr import JianYingASR  # 确保此模块已正确安装和配置
-
+from bk_asr.BcutASR import BcutASR
+from bk_asr.JianYingASR import JianYingASR
+from bk_asr.KuaiShouASR import KuaiShouASR
 
 # 设置日志配置
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler("asr_tool.log"),
-        logging.StreamHandler()
-    ]
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 
 
@@ -33,21 +30,35 @@ class WorkerSignals(QObject):
 
 class ASRWorker(QRunnable):
     """ASR处理工作线程"""
-
-    def __init__(self, file_path):
+    def __init__(self, file_path, asr_engine):
         super().__init__()
         self.file_path = file_path
+        self.asr_engine = asr_engine
         self.signals = WorkerSignals()
 
     @Slot()
     def run(self):
         try:
-            logging.info(f"开始处理文件: {self.file_path}")
-            asr = JianYingASR(self.file_path, use_cache=True)
+            use_cache = False
+            # 根据选择的 ASR 引擎实例化相应的类
+            if self.asr_engine == 'BcutASR':
+                asr = BcutASR(self.file_path, use_cache=use_cache)
+            elif self.asr_engine == 'JianYingASR':
+                asr = JianYingASR(self.file_path, use_cache=use_cache)
+            elif self.asr_engine == 'KuaiShouASR':
+                asr = KuaiShouASR(self.file_path, use_cache=use_cache)
+            elif self.asr_engine == 'WhisperASR':
+                # from bk_asr.WhisperASR import WhisperASR
+                # asr = WhisperASR(self.file_path, use_cache=use_cache)
+                raise NotImplementedError("WhisperASR 暂未实现")
+            else:
+                raise ValueError(f"未知的 ASR 引擎: {self.asr_engine}")
+
+            logging.info(f"开始处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
             result = asr.run()
             result_text = result.to_srt()
-            logging.info(f"完成处理文件: {self.file_path}")
-            save_path = self.file_path.split(".")[0] + ".srt"
+            logging.info(f"完成处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
+            save_path = self.file_path.rsplit(".", 1)[0] + ".srt"
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(result_text)
             self.signals.finished.emit(self.file_path, result_text)
@@ -173,8 +184,12 @@ class ASRWidget(QWidget):
         if current_row >= 0:
             file_path = self.table.item(current_row, 0).data(Qt.UserRole)
             if file_path in self.workers:
-                # 如果任务正在处理中，可以选择是否停止（当前不需要取消任务）
-                pass
+                worker = self.workers[file_path]
+                worker.signals.finished.disconnect(self.update_table)
+                worker.signals.errno.disconnect(self.handle_error)
+                # QThreadPool 不支持直接终止线程，通常需要设计任务可中断
+                # 这里仅移除引用
+                self.workers.pop(file_path, None)
             self.table.removeRow(current_row)
             self.update_start_button_state()
 
@@ -209,7 +224,24 @@ class ASRWidget(QWidget):
         current_row = self.table.currentRow()
         if current_row >= 0:
             file_path = self.table.item(current_row, 0).data(Qt.UserRole)
-            self.process_file(file_path)
+            status = self.table.item(current_row, 1).text()
+            if status == "处理中":
+                InfoBar.warning(
+                    title='当前文件正在处理中',
+                    content="请等待当前文件处理完成后再重新处理。",
+                    orient=Qt.Horizontal,
+                    isClosable=True,
+                    position=InfoBarPosition.TOP,
+                    duration=3000,
+                    parent=self
+                )
+                return
+            self.add_to_queue(file_path)
+
+    def add_to_queue(self, file_path):
+        """将文件添加到处理队列并更新状态"""
+        self.processing_queue.append(file_path)
+        self.process_next_in_queue()
 
     def process_files(self):
         """处理所有未处理的文件"""
@@ -222,22 +254,25 @@ class ASRWidget(QWidget):
     def process_next_in_queue(self):
         """处理队列中的下一个文件"""
         while self.thread_pool.activeThreadCount() < self.max_threads and self.processing_queue:
-            unique_id = self.processing_queue.pop(0)
-            self.process_file(unique_id)
+            file_path = self.processing_queue.pop(0)
+            if file_path not in self.workers:
+                self.process_file(file_path)
 
     def process_file(self, file_path):
         """处理单个文件"""
-        worker = ASRWorker(file_path)
+        selected_engine = self.combo_box.currentText()
+        worker = ASRWorker(file_path, selected_engine)
         worker.signals.finished.connect(self.update_table)
         worker.signals.errno.connect(self.handle_error)
         self.thread_pool.start(worker)
         self.workers[file_path] = worker
 
-        status_item = self.create_non_editable_item("处理中")
-        status_item.setForeground(QColor("orange"))
         row = self.find_row_by_file_path(file_path)
-        self.table.setItem(row, 1, status_item)
-        self.update_start_button_state()
+        if row != -1:
+            status_item = self.create_non_editable_item("处理中")
+            status_item.setForeground(QColor("orange"))
+            self.table.setItem(row, 1, status_item)
+            self.update_start_button_state()
 
     def update_table(self, file_path, result):
         """更新表格中文件的处理状态"""
@@ -308,14 +343,15 @@ class ASRWidget(QWidget):
 
     def dropEvent(self, event):
         """拖拽释放事件"""
+        supported_formats = ('.mp3', '.wav', '.ogg', '.mp4', '.avi', '.mov', '.ts')
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         for file in files:
             if os.path.isdir(file):
-                for root, dirs, files in os.walk(file):
-                    for f in files:
-                        if f.lower().endswith(('.mp3', '.wav', '.ogg', '.mp4', '.avi', '.mov', '.ts')):
+                for root, dirs, files_in_dir in os.walk(file):
+                    for f in files_in_dir:
+                        if f.lower().endswith(supported_formats):
                             self.add_file_to_table(os.path.join(root, f))
-            elif file.lower().endswith(('.mp3', '.wav', '.ogg', '.mp4', '.avi', '.mov', '.ts')):
+            elif file.lower().endswith(supported_formats):
                 self.add_file_to_table(file)
         self.update_start_button_state()
 
@@ -335,9 +371,19 @@ class MainWindow(FluentWindow):
         self.resize(800, 600)
 
 
-if __name__ == '__main__':
+def start():
+    # enable dpi scale
+    QApplication.setHighDpiScaleFactorRoundingPolicy(
+        Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
+    QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
+    QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
+
     app = QApplication(sys.argv)
     # setTheme(Theme.DARK)  # 如果需要深色主题，取消注释此行
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+if __name__ == '__main__':
+    start()
