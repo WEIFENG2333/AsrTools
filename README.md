@@ -93,7 +93,7 @@ print(txt)
 
 如果您在使用过程中遇到任何问题或有任何建议，欢迎通过以下方式联系我们：
 
-- **邮件**：2715673327@qq.com
+- **邮件**：fengeto@gmail.com
 - **Issues**：[提交问题](https://github.com/WEIFENG2333/AsrTools/issues)
 
 感谢您使用 **AsrTools**！🎉  
