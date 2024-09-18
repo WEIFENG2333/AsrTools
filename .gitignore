@@ -1,1 +1,3 @@
 /release/
+.gitignore
+.idea/
