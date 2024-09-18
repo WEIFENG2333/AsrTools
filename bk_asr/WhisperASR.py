@@ -39,7 +39,7 @@ class WhisperASR(BaseASR):
 
 if __name__ == '__main__':
     # Example usage
-    audio_file = r"C:\Users\weifeng\Music\低视力音乐助人者_mp4.mp3"
+    audio_file = r"test.mp3"
     asr = WhisperASR(audio_file)
     asr_data = asr.run()
     print(asr_data)

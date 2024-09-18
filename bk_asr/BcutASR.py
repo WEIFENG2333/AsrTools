@@ -158,7 +158,7 @@ class BcutASR(BaseASR):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
     # Example usage
-    audio_file = r"C:\Users\weifeng\Music\低视力音乐助人者_mp4.mp3"
+    audio_file = r"test.mp3"
     asr = BcutASR(audio_file)
     asr_data = asr.run()
     print(asr_data)
