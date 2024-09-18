@@ -31,13 +31,13 @@
 
 ## 🛠️ **安装指南**
 
-我们为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
-
 ###  **1. 从发布版本安装**
 
-1. **下载 Release**：访问 [Release 页面](https://github.com/WEIFENG2333/AsrTools/releases) 并下载最新的可执行文件压缩包。
-2. **解压文件**：将下载的压缩包解压到您的目标目录。
-3. **启动应用**：运行解压后的可执行文件，即可启动 GUI 界面。
+我们为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
+
+或者从网盘下载：[https://wwwm.lanzoue.com/i6k0a2aadsva](https://wwwm.lanzoue.com/i6k0a2aadsva)
+
+运行解压后的可执行文件，即可启动 GUI 界面。
 
 
 ###  **2. 从源码安装（开发者）**
