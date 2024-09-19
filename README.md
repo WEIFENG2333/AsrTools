@@ -1,19 +1,18 @@
 # 🎤 AsrTools
 
-**音频转字幕文本工具**
+🎙️✨ **AsrTools**：智能语音转文字工具，内置剪映、快手、必剪官方接口。
 
-🎙️✨ **AsrTools**：智能语音转文字工具 | 内置剪映、快手、必剪官方接口 | 高效批处理 | 用户友好界面 | 无需 GPU | 免费使用大厂 ASR 服务 | 支持 SRT/TXT 输出 | 让您的音频瞬间变成精确文字！
-
+对比 Github 目前大多的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是调用大厂接口来云端处理，无需 GPU 和繁琐的本地配置。 接口与官方体验一致，稳定快速且可靠。
 
 
 ## 🌟 **特色功能**
 
-- 💸 **调用大厂接口**：内置多家大厂 API，包括剪映、快手、必剪，免费享受高质量服务。
-- 🚀 **无需本地运行**：轻松使用，无需 GPU 和繁琐的本地配置。
+- 💸 **调用大厂接口**：通过逆向和抓包，支持多家大厂接口，包括剪映、快手、必剪，免费享受高质量服务。
+- 🚀 **无需复杂配置**：无需 GPU 和繁琐的本地配置，小白也能轻松使用。
 - 🖥️ **高颜值界面**：基于 **PyQt5** 和 **qfluentwidgets**，界面美观且用户友好。
 - ⚡ **效率超人**：多线程并发 + 批量处理，文字转换快如闪电。
 - 📄 **多格式支持**：支持生成 `.srt` 和 `.txt` 字幕文件，满足不同需求。
-- 🔍 **剪映接口**：剪映接口逆向还原，与官方体验一致，稳定可靠。
+- 🔍 **剪映接口**：逆向还原剪映软件的字幕识别接口，与官方体验一致，稳定可靠。
 
 
 
@@ -41,6 +40,10 @@
 
 
 ###  **2. 从源码安装（开发者）**
+
+项目的依赖仅仅为 `requests`。
+
+如果您需要 GUI 界面，请额外安装 `PyQt5`, `qfluentwidgets`。
 
 如果您想从源码运行，请按照以下步骤操作：
 
@@ -74,12 +77,12 @@
 如果您想在代码中调用 `bk_asr`，可以下载 `bk_asr` 文件夹，以下是一个简单的调用示例：
 
 ```python
-from bk_asr import BcutASR, JianYingASR, KuaiShouASR, WhisperASR
+from bk_asr import BcutASR, JianYingASR, KuaiShouASR
 
 audio_file = "resources/test.mp3"
 
 # 使用必剪 ASR 引擎
-asr = BcutASR(audio_file, use_cache=True)
+asr = BcutASR(audio_file)  # 可以选择 BcutASR, JianYingASR, KuaiShouASR
 result = asr.run()
 srt = result.to_srt()      # 生成 SRT 字幕文件
 txt = result.to_txt()      # 生成 TXT 字幕文件
@@ -97,7 +100,8 @@ print(txt)
 - **Issues**：[提交问题](https://github.com/WEIFENG2333/AsrTools/issues)
 
 感谢您使用 **AsrTools**！🎉  
-希望这款工具能为您的工作和生活带来便利。😊
+目前项目例如包的调用和GUI页面的功能仍在不断完善中...
+希望这款工具能为您带来便利。😊
 
 ---
 
