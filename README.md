@@ -100,7 +100,9 @@ print(txt)
 - **Issues**：[提交问题](https://github.com/WEIFENG2333/AsrTools/issues)
 
 感谢您使用 **AsrTools**！🎉  
-目前项目例如包的调用和GUI页面的功能仍在不断完善中...
+
+目前项目的相关调用和GUI页面的功能仍在不断完善中...
+
 希望这款工具能为您带来便利。😊
 
 ---
