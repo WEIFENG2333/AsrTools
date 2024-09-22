@@ -3,14 +3,15 @@ import os
 import platform
 import subprocess
 import sys
+import webbrowser
 
-from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot
-from PyQt5.QtGui import QCursor, QColor
+from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QSize
+from PyQt5.QtGui import QCursor, QColor, QFont
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog,
-                               QTableWidgetItem, QHeaderView, QSizePolicy)
+                             QTableWidgetItem, QHeaderView, QSizePolicy, QLabel, QFrame)
 from qfluentwidgets import (ComboBox, PushButton, LineEdit, TableWidget, FluentIcon as FIF,
                             Action, RoundMenu, InfoBar, InfoBarPosition,
-                            FluentWindow)
+                            FluentWindow, SubtitleLabel, BodyLabel)
 
 from bk_asr.BcutASR import BcutASR
 from bk_asr.JianYingASR import JianYingASR
@@ -356,20 +357,66 @@ class ASRWidget(QWidget):
         self.update_start_button_state()
 
 
+class InfoWidget(QWidget):
+    """个人信息界面"""
+
+    def __init__(self):
+        super().__init__()
+        self.init_ui()
+
+    def init_ui(self):
+        # GitHub URL 和仓库描述
+        GITHUB_URL = "https://github.com/WEIFENG2333/AsrTools"
+        REPO_DESCRIPTION = """
+    💸 调用大厂接口：支持包括剪映、快手、必剪多家大厂接口，，免费享受高质量服务。
+    🚀 无需复杂配置：无需 GPU 和繁琐的本地配置，小白也能轻松使用。
+    🖥️ 高颜值界面：基于 PyQt5 和 qfluentwidgets，界面美观且用户友好。
+    ⚡ 效率超人：多线程并发 + 批量处理，文字转换快如闪电。
+    📄 多格式支持：支持生成 .srt 和 .txt 字幕文件，满足不同需求。
+    🔍 剪映接口：逆向还原剪映软件的字幕识别接口，与官方体验一致，稳定可靠。
+        """
+        
+        main_layout = QVBoxLayout(self)
+        main_layout.setAlignment(Qt.AlignTop)
+        # main_layout.setSpacing(50)
+
+        # 标题
+        title_label = BodyLabel("  ASRTools", self)
+        title_label.setFont(QFont("Segoe UI", 30, QFont.Bold))
+        title_label.setAlignment(Qt.AlignCenter)
+        main_layout.addWidget(title_label)
+
+        # 仓库描述区域
+        desc_label = BodyLabel(REPO_DESCRIPTION, self)
+        desc_label.setFont(QFont("Segoe UI", 12))
+        main_layout.addWidget(desc_label)
+
+        github_button = PushButton("GitHub 仓库", self)
+        github_button.setIcon(FIF.GITHUB)
+        github_button.setIconSize(QSize(20, 20))
+        github_button.setMinimumHeight(42)
+        github_button.clicked.connect(lambda _: webbrowser.open(GITHUB_URL))
+        main_layout.addWidget(github_button)
+
+
 class MainWindow(FluentWindow):
     """主窗口"""
-
     def __init__(self):
         super().__init__()
         self.setWindowTitle('ASR Processing Tool')
 
+        # ASR 处理界面
         self.asr_widget = ASRWidget()
         self.asr_widget.setObjectName("main")
         self.addSubInterface(self.asr_widget, FIF.ALBUM, 'ASR Processing')
 
+        # 个人信息界面
+        self.info_widget = InfoWidget()
+        self.info_widget.setObjectName("info")  # 设置对象名称
+        self.addSubInterface(self.info_widget, FIF.GITHUB, 'About')
+
         self.navigationInterface.setExpandWidth(200)
         self.resize(800, 600)
-
 
 def start():
     # enable dpi scale
