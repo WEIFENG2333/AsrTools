@@ -4,6 +4,8 @@
 
  对比 Github 目前多数的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是调用大厂接口来云端处理，无需 GPU 和繁琐的本地配置。 接口与官方体验一致，稳定快速且可靠。
 
+欢迎为项目给上一个 Star。
+
 
 ## 🌟 **特色功能**
 
@@ -32,11 +34,11 @@
 
 ###  **1. 从发布版本安装**
 
-我们为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
+我为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
 
 或者从网盘下载：[https://wwwm.lanzoue.com/i6k0a2aadsva](https://wwwm.lanzoue.com/i6k0a2aadsva)
 
-运行解压后的可执行文件，即可启动 GUI 界面。
+运行解压后的 `AsrTools.exe`，即可启动 GUI 界面。
 
 
 ###  **2. 从源码安装（开发者）**
@@ -74,7 +76,9 @@
 
 ## 📝 **开发者指南**
 
-如果您想在代码中调用 `bk_asr`，可以下载 `bk_asr` 文件夹，以下是一个简单的调用示例：
+如果想在代码中调用 `bk_asr`，可以下载 `bk_asr` 文件夹后进行调用，目前项目还在不断完善中...
+
+以下是一个简单的调用示例：
 
 ```python
 from bk_asr import BcutASR, JianYingASR, KuaiShouASR
