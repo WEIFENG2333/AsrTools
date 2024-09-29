@@ -5,13 +5,14 @@ import subprocess
 import sys
 import webbrowser
 
-from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QSize
+from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QSize, QThread, \
+    pyqtSignal
 from PyQt5.QtGui import QCursor, QColor, QFont
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, QFileDialog,
-                             QTableWidgetItem, QHeaderView, QSizePolicy, QLabel, QFrame)
+                             QTableWidgetItem, QHeaderView, QSizePolicy)
 from qfluentwidgets import (ComboBox, PushButton, LineEdit, TableWidget, FluentIcon as FIF,
                             Action, RoundMenu, InfoBar, InfoBarPosition,
-                            FluentWindow, SubtitleLabel, BodyLabel)
+                            FluentWindow, BodyLabel, MessageBox)
 
 from bk_asr.BcutASR import BcutASR
 from bk_asr.JianYingASR import JianYingASR
@@ -67,6 +68,29 @@ class ASRWorker(QRunnable):
             logging.error(f"处理文件 {self.file_path} 时出错: {str(e)}")
             self.signals.errno.emit(self.file_path, f"处理时出错: {str(e)}")
 
+class UpdateCheckerThread(QThread):
+    msg = pyqtSignal(str, str, str)  # 用于发送消息的信号
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def run(self):
+        try:
+            from check_update import check_update, check_internet_connection
+            # 检查互联网连接
+            if not check_internet_connection():
+                self.msg.emit("错误", "无法连接到互联网，请检查网络连接。", "")
+                return
+            # 检查更新
+            config = check_update(self)
+            if config:
+                if config['fource']:
+                    self.msg.emit("更新", "检测到新版本，请下载最新版本。", config['update_download_url'])
+                else:
+                    self.msg.emit("可更新", "检测到新版本，请下载最新版本。", config['update_download_url'])
+        except Exception as e:
+            pass
+
 
 class ASRWidget(QWidget):
     """ASR处理界面"""
@@ -79,6 +103,7 @@ class ASRWidget(QWidget):
         self.thread_pool.setMaxThreadCount(self.max_threads)
         self.processing_queue = []
         self.workers = {}  # 维护文件路径到worker的映射
+
 
     def init_ui(self):
         layout = QVBoxLayout(self)
@@ -417,6 +442,19 @@ class MainWindow(FluentWindow):
 
         self.navigationInterface.setExpandWidth(200)
         self.resize(800, 600)
+
+        self.update_checker = UpdateCheckerThread(self)
+        self.update_checker.msg.connect(self.show_msg)
+        self.update_checker.start()
+
+    def show_msg(self, title, content, update_download_url):
+        w = MessageBox(title, content, self)
+        if w.exec() and update_download_url:
+            webbrowser.open(update_download_url)
+        if title == "更新":
+            sys.exit(0)
+
+
 
 def start():
     # enable dpi scale
