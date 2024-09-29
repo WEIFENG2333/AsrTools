@@ -1,3 +1,4 @@
 /release/
 .gitignore
 .idea/
+check_update.py
