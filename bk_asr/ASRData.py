@@ -16,11 +16,13 @@ class ASRDataSeg:
         """Convert to SRT timestamp format"""
         return f"{self._ms_to_srt_time(self.start_time)} --> {self._ms_to_srt_time(self.end_time)}"
 
-    def _ms_to_srt_time(self, ms) -> str:
-        seconds = ms / 1000
-        minutes, seconds = divmod(seconds, 60)
+    @staticmethod
+    def _ms_to_srt_time(ms) -> str:
+        """Convert milliseconds to SRT time format (HH:MM:SS,mmm)"""
+        total_seconds, milliseconds = divmod(ms, 1000)
+        minutes, seconds = divmod(total_seconds, 60)
         hours, minutes = divmod(minutes, 60)
-        return f"{int(hours):02}:{int(minutes):02}:{seconds:.3f}"
+        return f"{int(hours):02}:{int(minutes):02}:{int(seconds):02},{int(milliseconds):03}"
 
     def to_lrc_ts(self) -> str:
         """Convert to LRC timestamp format"""
