@@ -1,7 +1,9 @@
 import json
+import logging
 import os
 import zlib
 import tempfile
+import threading
 
 from .ASRData import ASRDataSeg, ASRData
 
@@ -9,6 +11,7 @@ from .ASRData import ASRDataSeg, ASRData
 class BaseASR:
     SUPPORTED_SOUND_FORMAT = ["flac", "m4a", "mp3", "wav"]
     CACHE_FILE = os.path.join(tempfile.gettempdir(), "bk_asr", "asr_cache.json")
+    _lock = threading.Lock()
 
     def __init__(self, audio_path: [str, bytes], use_cache: bool = False):
         self.audio_path = audio_path
@@ -25,21 +28,28 @@ class BaseASR:
         if not self.use_cache:
             return {}
         os.makedirs(os.path.dirname(self.CACHE_FILE), exist_ok=True)
-        if os.path.exists(self.CACHE_FILE):
-            with open(self.CACHE_FILE, 'r', encoding='utf-8') as f:
-                cache = json.load(f)
-                if not isinstance(cache, dict):
+        with self._lock:
+            if os.path.exists(self.CACHE_FILE):
+                try:
+                    with open(self.CACHE_FILE, 'r', encoding='utf-8') as f:
+                        cache = json.load(f)
+                        if isinstance(cache, dict):
+                            return cache
+                except (json.JSONDecodeError, IOError):
                     return {}
-                return cache
-        return {}
+            return {}
 
     def _save_cache(self):
         if not self.use_cache:
             return
-        with open(self.CACHE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(self.cache, f, ensure_ascii=False, indent=2)
-        if os.path.exists(self.CACHE_FILE) and os.path.getsize(self.CACHE_FILE) > 5 * 1024 * 1024:
-            os.remove(self.CACHE_FILE)
+        with self._lock:
+            try:
+                with open(self.CACHE_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(self.cache, f, ensure_ascii=False, indent=2)
+                if os.path.exists(self.CACHE_FILE) and os.path.getsize(self.CACHE_FILE) > 10 * 1024 * 1024:
+                    os.remove(self.CACHE_FILE)
+            except IOError as e:
+                logging.error(f"Failed to save cache: {e}")
 
     def _set_data(self):
         if isinstance(self.audio_path, bytes):

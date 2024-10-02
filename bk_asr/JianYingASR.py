@@ -2,6 +2,7 @@ import datetime
 import hashlib
 import hmac
 import json
+import logging
 import os
 import subprocess
 import time
@@ -77,8 +78,10 @@ class JianYingASR(BaseASR):
         return response.json()
 
     def _run(self):
+        logging.info("正在上传文件...")
         self.upload()
         query_id = self.submit()
+        logging.info(f"任务提交成功, 查询ID: {query_id}")
         resp_data = self.query(query_id)
         return resp_data
 
@@ -105,6 +108,14 @@ class JianYingASR(BaseASR):
             'sign-ver': "1",
             'tdid': "3943278516897751",
         }
+
+    def _uplosd_headers(self):
+        headers = {
+            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 Thea/1.0.1",
+            'Authorization': self.auth,
+            'Content-CRC32': self.crc32_hex,
+        }
+        return headers
 
     def _upload_sign(self):
         """Get upload sign"""
@@ -153,11 +164,7 @@ class JianYingASR(BaseASR):
     def _upload_file(self):
         """Upload the file"""
         url = f"https://{self.upload_hosts}/{self.store_uri}?partNumber=1&uploadID={self.upload_id}"
-        headers = {
-            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 Thea/1.0.1",
-            'Authorization': self.auth,
-            'Content-CRC32': self.crc32_hex,
-        }
+        headers = self._uplosd_headers()
         response = requests.put(url, data=self.file_binary, headers=headers)
         resp_data = response.json()
         assert resp_data['success'] == 0, f"File upload failed: {response.text}"
@@ -167,11 +174,7 @@ class JianYingASR(BaseASR):
         """Check upload result"""
         url = f"https://{self.upload_hosts}/{self.store_uri}?uploadID={self.upload_id}"
         payload = f"1:{self.crc32_hex}"
-        headers = {
-            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 Thea/1.0.1",
-            'Authorization': self.auth,
-            'Content-CRC32': self.crc32_hex,
-        }
+        headers = self._uplosd_headers()
         response = requests.post(url, data=payload, headers=headers)
         resp_data = response.json()
         return resp_data
@@ -179,11 +182,7 @@ class JianYingASR(BaseASR):
     def _upload_commit(self):
         """Commit the uploaded file"""
         url = f"https://{self.upload_hosts}/{self.store_uri}?uploadID={self.upload_id}&partNumber=1&x-amz-security-token={self.session_token}"
-        headers = {
-            'User-Agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36 Thea/1.0.1",
-            'Authorization': self.auth,
-            'Content-CRC32': self.crc32_hex,
-        }
+        headers = self._uplosd_headers()
         response = requests.put(url, data=self.file_binary, headers=headers)
         return self.store_uri
 

@@ -1,10 +1,5 @@
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-import json
 from typing import List
 
-# import ffmpeg
-
-# from SubtitleOptimizer import SubtitleOptimizer
 
 class ASRDataSeg:
     def __init__(self, text, start_time, end_time):
@@ -40,6 +35,7 @@ class ASRDataSeg:
 
     def __str__(self) -> str:
         return f"ASRDataSeg({self.text}, {self.start_time}, {self.end_time})"
+
 
 
 class ASRData:

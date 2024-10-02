@@ -28,14 +28,14 @@ API_QUERY_RESULT = API_BASE_URL + "/task/result"
 
 
 class BcutASR(BaseASR):
-    "必剪 语音识别接口"
+    """必剪 语音识别接口"""
     headers = {
         'User-Agent': 'Bilibili/1.0.0 (https://www.bilibili.com)',
         'Content-Type': 'application/json'
     }
 
     def __init__(self, audio_path: [str, bytes], use_cache: bool = False):
-        super().__init__(audio_path)
+        super().__init__(audio_path, use_cache=use_cache)
         self.session = requests.Session()
         self.task_id = None
         self.__etags = []
@@ -53,7 +53,7 @@ class BcutASR(BaseASR):
 
 
     def upload(self) -> None:
-        "申请上传"
+        """申请上传"""
         if not self.file_binary:
             raise ValueError("none set data")
         payload = json.dumps({
@@ -87,7 +87,7 @@ class BcutASR(BaseASR):
         self.__commit_upload()
 
     def __upload_part(self) -> None:
-        "上传音频数据"
+        """上传音频数据"""
         for clip in range(self.__clips):
             start_range = clip * self.__per_size
             end_range = (clip + 1) * self.__per_size
@@ -103,7 +103,7 @@ class BcutASR(BaseASR):
             logging.info(f"分片{clip}上传成功: {etag}")
 
     def __commit_upload(self) -> None:
-        "提交上传数据"
+        """提交上传数据"""
         data = json.dumps({
             "InBossKey": self.__in_boss_key,
             "ResourceId": self.__resource_id,
@@ -122,7 +122,7 @@ class BcutASR(BaseASR):
         logging.info(f"提交成功")
 
     def create_task(self) -> str:
-        "开始创建转换任务"
+        """开始创建转换任务"""
         resp = requests.post(
             API_CREATE_TASK, json={"resource": self.__download_url, "model_id": "8"}, headers=self.headers
         )
@@ -133,7 +133,7 @@ class BcutASR(BaseASR):
         return self.task_id
 
     def result(self, task_id: Optional[str] = None):
-        "查询转换结果"
+        """查询转换结果"""
         resp = requests.get(API_QUERY_RESULT, params={"model_id": 7, "task_id": task_id or self.task_id}, headers=self.headers)
         resp.raise_for_status()
         resp = resp.json()
@@ -143,7 +143,7 @@ class BcutASR(BaseASR):
         self.upload()
         self.create_task()
         # 轮询检查任务状态
-        while True:
+        for _ in range(500):
             task_resp = self.result()
             if task_resp["state"] == 4:
                 break

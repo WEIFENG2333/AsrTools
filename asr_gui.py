@@ -41,7 +41,7 @@ class ASRWorker(QRunnable):
     @Slot()
     def run(self):
         try:
-            use_cache = False
+            use_cache = True
             # 根据选择的 ASR 引擎实例化相应的类
             if self.asr_engine == 'BcutASR':
                 asr = BcutASR(self.file_path, use_cache=use_cache)
