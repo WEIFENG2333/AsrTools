@@ -393,12 +393,10 @@ class InfoWidget(QWidget):
         # GitHub URL 和仓库描述
         GITHUB_URL = "https://github.com/WEIFENG2333/AsrTools"
         REPO_DESCRIPTION = """
-    💸 调用大厂接口：支持包括剪映、快手、必剪多家大厂接口，，免费享受高质量服务。
     🚀 无需复杂配置：无需 GPU 和繁琐的本地配置，小白也能轻松使用。
     🖥️ 高颜值界面：基于 PyQt5 和 qfluentwidgets，界面美观且用户友好。
     ⚡ 效率超人：多线程并发 + 批量处理，文字转换快如闪电。
     📄 多格式支持：支持生成 .srt 和 .txt 字幕文件，满足不同需求。
-    🔍 剪映接口：逆向还原剪映软件的字幕识别接口，与官方体验一致，稳定可靠。
         """
         
         main_layout = QVBoxLayout(self)
