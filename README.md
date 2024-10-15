@@ -42,7 +42,7 @@
 
 我为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
 
-或者从网盘下载：[https://wwwm.lanzoue.com/i3YaY2clcp7a](https://wwwm.lanzoue.com/i3YaY2clcp7a)
+或者从网盘下载：[https://wwwm.lanzoue.com/ibvBC2cljl7i](https://wwwm.lanzoue.com/ibvBC2cljl7i)
 
 运行解压后的 `AsrTools.exe`，即可启动 GUI 界面。
 
