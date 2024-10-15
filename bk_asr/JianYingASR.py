@@ -111,7 +111,6 @@ class JianYingASR(BaseASR):
             raise SystemExit(f"HTTP Request failed: {e}")
         except ValueError as ve:
             raise SystemExit(f"Invalid response: {ve}")
-        print(f"Generated sign: {sign}")
         return sign.lower(), current_time
 
 

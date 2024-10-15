@@ -43,13 +43,13 @@ class ASRWorker(QRunnable):
         try:
             use_cache = True
             # 根据选择的 ASR 引擎实例化相应的类
-            if self.asr_engine == 'BcutASR':
+            if self.asr_engine == 'B 接口':
                 asr = BcutASR(self.file_path, use_cache=use_cache)
-            elif self.asr_engine == 'JianYingASR':
+            elif self.asr_engine == 'J 接口':
                 asr = JianYingASR(self.file_path, use_cache=use_cache)
-            elif self.asr_engine == 'KuaiShouASR':
+            elif self.asr_engine == 'K 接口':
                 asr = KuaiShouASR(self.file_path, use_cache=use_cache)
-            elif self.asr_engine == 'WhisperASR':
+            elif self.asr_engine == 'Whisper':
                 # from bk_asr.WhisperASR import WhisperASR
                 # asr = WhisperASR(self.file_path, use_cache=use_cache)
                 raise NotImplementedError("WhisperASR 暂未实现")
@@ -110,7 +110,7 @@ class ASRWidget(QWidget):
 
         # ASR引擎选择下拉框
         self.combo_box = ComboBox(self)
-        self.combo_box.addItems(['BcutASR', 'JianYingASR', 'KuaiShouASR', 'WhisperASR'])
+        self.combo_box.addItems(['B 接口', 'J 接口', 'K 接口', 'Whisper'])
         layout.addWidget(self.combo_box)
 
         # 文件选择区域
