@@ -92,10 +92,10 @@
 希望这款工具能为您带来便利。😊
 
 ---
+## Star History
 
- ## 📄 **许可证**
+[![Star History Chart](https://api.star-history.com/svg?repos=WEIFENG2333/AsrTools&type=Date)](https://star-history.com/#WEIFENG2333/AsrTools&Date)
 
-本项目采用 [GNU 通用公共许可证第3版（GPL-3.0）](https://www.gnu.org/licenses/gpl-3.0.en.html)。详情请参阅 [LICENSE](https://github.com/WEIFENG2333/AsrTools/blob/main/LICENSE) 文件。
 
 
 
