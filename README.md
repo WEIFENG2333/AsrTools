@@ -1,21 +1,18 @@
 # 🎤 AsrTools
 
-🎙️✨ **AsrTools**：智能语音转字幕文本工具，内置剪映、快手、必剪接口。
+🎙️✨ **AsrTools**：智能语音转字幕文本工具
 
- 对比 Github 目前多数的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是调用大厂接口来云端处理，无需 GPU 和繁琐的本地配置。 接口与官方体验一致，稳定快速且可靠。
+ 对比 Github 目前多数的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是无需 GPU 和繁琐的本地配置。
 
 欢迎为项目给上一个 Star。
 
 
 ## 🌟 **特色功能**
 
-- 💸 **调用大厂接口**：通过逆向和抓包，支持多家大厂接口，包括剪映、快手、必剪，免费享受高质量服务。
 - 🚀 **无需复杂配置**：无需 GPU 和繁琐的本地配置，小白也能轻松使用。
 - 🖥️ **高颜值界面**：基于 **PyQt5** 和 **qfluentwidgets**，界面美观且用户友好。
 - ⚡ **效率超人**：多线程并发 + 批量处理，文字转换快如闪电。
 - 📄 **多格式支持**：支持生成 `.srt` 和 `.txt` 字幕文件，满足不同需求。
-- 🔍 **剪映接口**：逆向还原剪映软件的字幕识别接口，与官方体验一致，稳定可靠。
-
 
 
 ## 🌟 未来计划（TODO）
@@ -35,7 +32,7 @@
 ### 🖥️ **快速上手**
 
 1. **启动应用**：运行下载的可执行文件或通过命令行启动 GUI 界面。
-2. **选择 ASR 引擎**：在下拉菜单中选择你需要使用的 ASR 引擎（剪映、快手、必剪）。
+2. **选择 ASR 引擎**：在下拉菜单中选择你需要使用的 ASR 引擎。
 3. **添加文件**：点击“选择文件”按钮或将文件/文件夹拖拽到指定区域。
 4. **开始处理**：点击“开始处理”按钮，程序将自动开始转换，并在完成后在原音频目录生成 `.srt` 或 `.txt` 字幕文件。（默认保持 3 个线程运行）
 
@@ -45,7 +42,7 @@
 
 我为 Windows 用户提供了打包好的[Release](https://github.com/WEIFENG2333/AsrTools/releases)版本，下载后解压即可直接使用，无需配置环境。
 
-或者从网盘下载：[https://wwwm.lanzoue.com/idGJN2alm88h](https://wwwm.lanzoue.com/idGJN2alm88h)
+或者从网盘下载：[https://wwwm.lanzoue.com/i3YaY2clcp7a](https://wwwm.lanzoue.com/i3YaY2clcp7a)
 
 运行解压后的 `AsrTools.exe`，即可启动 GUI 界面。
 
@@ -81,27 +78,6 @@
         python example.py
         ```
 
----
-
-## 📝 **开发者指南**
-
-如果想在代码中调用 `bk_asr`，可以下载 `bk_asr` 文件夹后进行调用，目前项目还在不断完善中...
-
-以下是一个简单的调用示例：
-
-```python
-from bk_asr import BcutASR, JianYingASR, KuaiShouASR
-
-audio_file = "resources/test.mp3"
-
-# 使用必剪 ASR 引擎
-asr = BcutASR(audio_file)  # 可以选择 BcutASR, JianYingASR, KuaiShouASR
-result = asr.run()
-srt = result.to_srt()      # 生成 SRT 字幕文件
-txt = result.to_txt()      # 生成 TXT 字幕文件
-json_data = result.to_json()  # 返回一个字典（包含时间）
-print(txt)
-```
 
 ---
 
@@ -123,3 +99,7 @@ print(txt)
 
 
 
+---
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=WEIFENG2333/AsrTools&type=Date)](https://star-history.com/#WEIFENG2333/AsrTools&Date)
