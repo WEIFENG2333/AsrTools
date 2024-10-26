@@ -45,7 +45,7 @@ class ASRWorker(QRunnable):
             use_cache = True
 
             # 检查文件是否为视频文件
-            video_extensions = ('.mp4', '.avi', '.mov', '.ts')
+            video_extensions = ('.mp4', '.avi', '.mov', '.ts', '.mkv', '.flv', '.wmv', '.webm')
             if self.file_path.lower().endswith(video_extensions):
                 # 如果是视频文件,先转换为音频
                 audio_file = self.convert_video_to_audio(self.file_path)
