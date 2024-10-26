@@ -1,10 +1,11 @@
 import logging
 import os
 import platform
-import subprocess
 import sys
 import webbrowser
-
+import subprocess
+import tempfile
+import ffmpeg
 from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QSize, QThread, \
     pyqtSignal
 from PyQt5.QtGui import QCursor, QColor, QFont
@@ -42,31 +43,61 @@ class ASRWorker(QRunnable):
     def run(self):
         try:
             use_cache = True
+
+            # 检查文件是否为视频文件
+            video_extensions = ('.mp4', '.avi', '.mov', '.ts')
+            if self.file_path.lower().endswith(video_extensions):
+                # 如果是视频文件,先转换为音频
+                audio_file = self.convert_video_to_audio(self.file_path)
+            else:
+                audio_file = self.file_path
             # 根据选择的 ASR 引擎实例化相应的类
             if self.asr_engine == 'B 接口':
-                asr = BcutASR(self.file_path, use_cache=use_cache)
+                asr = BcutASR(audio_file, use_cache=use_cache)
             elif self.asr_engine == 'J 接口':
-                asr = JianYingASR(self.file_path, use_cache=use_cache)
+                asr = JianYingASR(audio_file, use_cache=use_cache)
             elif self.asr_engine == 'K 接口':
-                asr = KuaiShouASR(self.file_path, use_cache=use_cache)
+                asr = KuaiShouASR(audio_file, use_cache=use_cache)
             elif self.asr_engine == 'Whisper':
-                # from bk_asr.WhisperASR import WhisperASR
-                # asr = WhisperASR(self.file_path, use_cache=use_cache)
                 raise NotImplementedError("WhisperASR 暂未实现")
             else:
                 raise ValueError(f"未知的 ASR 引擎: {self.asr_engine}")
 
-            logging.info(f"开始处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
+            logging.info(f"开始处理文件: {audio_file} 使用引擎: {self.asr_engine}")
             result = asr.run()
             result_text = result.to_srt()
-            logging.info(f"完成处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
+            logging.info(f"完成处理文件: {audio_file} 使用引擎: {self.asr_engine}")
             save_path = self.file_path.rsplit(".", 1)[0] + ".srt"
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(result_text)
             self.signals.finished.emit(self.file_path, result_text)
+            # 如果创建了临时音频文件,删除它
+            if audio_file != self.file_path:
+                os.remove(audio_file)
+
         except Exception as e:
             logging.error(f"处理文件 {self.file_path} 时出错: {str(e)}")
             self.signals.errno.emit(self.file_path, f"处理时出错: {str(e)}")
+
+    def convert_video_to_audio(self, video_path):
+        # 创建临时文件用于存储音频
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
+            temp_audio_path = temp_audio.name
+
+        try:
+            # 使用ffmpeg-python将视频转换为音频
+            (
+                ffmpeg
+                .input(video_path)
+                .output(temp_audio_path, acodec='pcm_s16le', ar=16000, ac=1)
+                .overwrite_output()
+                .run(capture_stdout=True, capture_stderr=True)
+            )
+            logging.info(f"成功将视频 {video_path} 转换为音频 {temp_audio_path}")
+            return temp_audio_path
+        except ffmpeg.Error as e:
+            logging.error(f"转换视频到音频时出错: {e.stderr.decode()}")
+            raise
 
 class UpdateCheckerThread(QThread):
     msg = pyqtSignal(str, str, str)  # 用于发送消息的信号
@@ -393,7 +424,7 @@ class InfoWidget(QWidget):
         # GitHub URL 和仓库描述
         GITHUB_URL = "https://github.com/WEIFENG2333/AsrTools"
         REPO_DESCRIPTION = """
-    🚀 无需复杂配置：无需 GPU 和繁琐的本地配置，小白也能轻松使用。
+    🚀 无需复杂配置：无需 GPU ���繁琐的本地配置，小白也能轻松使用。
     🖥️ 高颜值界面：基于 PyQt5 和 qfluentwidgets，界面美观且用户友好。
     ⚡ 效率超人：多线程并发 + 批量处理，文字转换快如闪电。
     📄 多格式支持：支持生成 .srt 和 .txt 字幕文件，满足不同需求。
@@ -470,3 +501,4 @@ def start():
 
 if __name__ == '__main__':
     start()
+
