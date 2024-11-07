@@ -2,10 +2,10 @@ import datetime
 import hashlib
 import hmac
 import json
-import logging
 import os
 import time
-from typing import Dict, Tuple
+import uuid
+from typing import Dict, Tuple, Union
 
 import requests
 
@@ -13,8 +13,12 @@ from .ASRData import ASRDataSeg
 from .BaseASR import BaseASR
 
 
+# from ASRData import ASRDataSeg
+# from BaseASR import BaseASR
+
 class JianYingASR(BaseASR):
-    def __init__(self, audio_path: [str, bytes], use_cache: bool = False, start_time: float = 0, end_time: float = 6000):
+    def __init__(self, audio_path: Union[str, bytes], use_cache: bool = False, need_word_time_stamp: bool = False,
+                 start_time: float = 0, end_time: float = 6000):
         super().__init__(audio_path, use_cache)
         self.audio_path = audio_path
         self.end_time = end_time
@@ -32,6 +36,8 @@ class JianYingASR(BaseASR):
         self.session_key = None
         self.upload_hosts = None
 
+        self.need_word_time_stamp = need_word_time_stamp
+        self.tdid = f"{uuid.getnode():012d}"
 
     def submit(self) -> str:
         """Submit the task"""
@@ -47,7 +53,7 @@ class JianYingASR(BaseASR):
         }
 
         sign, device_time = self._generate_sign_parameters(url='/lv/v1/audio_subtitle/submit', pf='4', appvr='4.0.0',
-                                                           tdid='3943278516897751')
+                                                           tdid=self.tdid)
         headers = self._build_headers(device_time, sign)
         response = requests.post(url, json=payload, headers=headers)
         query_id = response.json()['data']['id']
@@ -70,32 +76,61 @@ class JianYingASR(BaseASR):
             "pack_options": {"need_attribute": True}
         }
         sign, device_time = self._generate_sign_parameters(url='/lv/v1/audio_subtitle/query', pf='4', appvr='4.0.0',
-                                                           tdid='3943278516897751')
+                                                           tdid=self.tdid)
         headers = self._build_headers(device_time, sign)
         response = requests.post(url, json=payload, headers=headers)
         return response.json()
 
-    def _run(self):
-        logging.info("正在上传文件...")
+    def _run(self, callback=None):
+        # logging.info("正在上传文件...")
+        if callback:
+            callback(20, "正在上传...")
         self.upload()
+        if callback:
+            callback(50, "提交任务...")
         query_id = self.submit()
-        logging.info(f"任务提交成功, 查询ID: {query_id}")
+        if callback:
+            callback(60, "获取结果...")
         resp_data = self.query(query_id)
+        if callback:
+            callback(100, "转录完成")
         return resp_data
 
     def _make_segments(self, resp_data: dict) -> list[ASRDataSeg]:
-        return [ASRDataSeg(u['text'], u['start_time'], u['end_time']) for u in resp_data['data']['utterances']]
+        if self.need_word_time_stamp:
+            return [ASRDataSeg(w['text'].strip(), w['start_time'], w['end_time']) for u in
+                    resp_data['data']['utterances'] for w in u['words']]
+        else:
+            return [ASRDataSeg(u['text'], u['start_time'], u['end_time']) for u in resp_data['data']['utterances']]
 
-    @staticmethod
-    def _generate_sign_parameters(url: str, pf: str = '4', appvr: str = '4.0.0', tdid: str = '3943278516897751') -> \
-    Tuple[str, str]:
-        """Generate signature and timestamp"""
+    def _get_key(self):
+        return f"{self.__class__.__name__}-{self.crc32_hex}-{self.need_word_time_stamp}"
+
+    def _generate_sign_parameters(self, url: str, pf: str = '4', appvr: str = '4.0.0', tdid='') -> \
+            Tuple[str, str]:
+        """Generate signature and timestamp via an HTTP request"""
         current_time = str(int(time.time()))
-        sign_str = f"9e2c|{url[-7:]}|{pf}|{appvr}|{current_time}|{tdid}|11ac"
-        sign = hashlib.md5(sign_str.encode()).hexdigest()
+        data = {
+            'url': url,
+            'current_time': current_time,
+            'pf': pf,
+            'appvr': appvr,
+            'tdid': self.tdid
+        }
+        # Replace with your actual endpoint URL
+        get_sign_url = 'https://asrtools-update.bkfeng.top/sign'
+        try:
+            response = requests.post(get_sign_url, json=data)
+            response.raise_for_status()
+            response_data = response.json()
+            sign = response_data.get('sign')
+            if not sign:
+                raise ValueError("No 'sign' in response")
+        except requests.exceptions.RequestException as e:
+            raise SystemExit(f"HTTP Request failed: {e}")
+        except ValueError as ve:
+            raise SystemExit(f"Invalid response: {ve}")
         return sign.lower(), current_time
-
-
 
     def _build_headers(self, device_time: str, sign: str) -> Dict[str, str]:
         """Build headers for requests"""
@@ -106,7 +141,7 @@ class JianYingASR(BaseASR):
             'pf': "4",
             'sign': sign,
             'sign-ver': "1",
-            'tdid': "3943278516897751",
+            'tdid': self.tdid,
         }
 
     def _uplosd_headers(self):
@@ -122,7 +157,7 @@ class JianYingASR(BaseASR):
         url = "https://lv-pc-api-sinfonlinec.ulikecam.com/lv/v1/upload_sign"
         payload = json.dumps({"biz": "pc-recognition"})
         sign, device_time = self._generate_sign_parameters(url='/lv/v1/upload_sign', pf='4', appvr='4.0.0',
-                                                           tdid='3943278516897751')
+                                                           tdid=self.tdid)
         headers = self._build_headers(device_time, sign)
         response = requests.post(url, data=payload, headers=headers)
         response.raise_for_status()
@@ -223,11 +258,9 @@ def aws_signature(secret_key: str, request_parameters: str, headers: Dict[str, s
     return signature
 
 
-
-
 if __name__ == '__main__':
     # Example usage
-    audio_file = r"test.mp3"
-    asr = JianYingASR(audio_file)
+    audio_file = r"C:\Users\weifeng\Music\output_001.mp3"
+    asr = JianYingASR(audio_file, use_cache=True, need_word_time_stamp=True)
     asr_data = asr.run()
     print(asr_data)
