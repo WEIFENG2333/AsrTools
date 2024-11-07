@@ -89,28 +89,10 @@ class JianYingASR(BaseASR):
     @staticmethod
     def _generate_sign_parameters(url: str, pf: str = '4', appvr: str = '4.0.0', tdid: str = '3943278516897751') -> \
     Tuple[str, str]:
-        """Generate signature and timestamp via an HTTP request"""
+        """Generate signature and timestamp"""
         current_time = str(int(time.time()))
-        data = {
-            'url': url,
-            'current_time': current_time,
-            'pf': pf,
-            'appvr': appvr,
-            'tdid': tdid
-        }
-        # Replace with your actual endpoint URL
-        get_sign_url = 'https://asrtools-update.bkfeng.top/sign'
-        try:
-            response = requests.post(get_sign_url, json=data)
-            response.raise_for_status()
-            response_data = response.json()
-            sign = response_data.get('sign')
-            if not sign:
-                raise ValueError("No 'sign' in response")
-        except requests.exceptions.RequestException as e:
-            raise SystemExit(f"HTTP Request failed: {e}")
-        except ValueError as ve:
-            raise SystemExit(f"Invalid response: {ve}")
+        sign_str = f"9e2c|{url[-7:]}|{pf}|{appvr}|{current_time}|{tdid}|11ac"
+        sign = hashlib.md5(sign_str.encode()).hexdigest()
         return sign.lower(), current_time
 
 

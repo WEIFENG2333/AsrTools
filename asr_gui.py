@@ -1,9 +1,15 @@
 import logging
 import os
+from pathlib import Path
 import platform
 import subprocess
 import sys
 import webbrowser
+
+# FIX: 修复中文路径报错 https://github.com/WEIFENG2333/AsrTools/issues/18  设置QT_QPA_PLATFORM_PLUGIN_PATH 
+plugin_path = os.path.join(sys.prefix, 'Lib', 'site-packages', 'PyQt5', 'Qt5', 'plugins')
+os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
+print(os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'])
 
 from PyQt5.QtCore import Qt, QRunnable, QThreadPool, QObject, pyqtSignal as Signal, pyqtSlot as Slot, QSize, QThread, \
     pyqtSignal
@@ -32,23 +38,38 @@ class WorkerSignals(QObject):
 
 class ASRWorker(QRunnable):
     """ASR处理工作线程"""
-    def __init__(self, file_path, asr_engine):
+    def __init__(self, file_path, asr_engine, export_format):
         super().__init__()
         self.file_path = file_path
         self.asr_engine = asr_engine
+        self.export_format = export_format
         self.signals = WorkerSignals()
+
+        self.audio_path = None
 
     @Slot()
     def run(self):
         try:
             use_cache = True
+            
+            # 检查文件类型,如果不是音频则转换
+            logging.info("[+]正在进ffmpeg转换")
+            audio_exts = ['.mp3', '.wav']
+            if not any(self.file_path.lower().endswith(ext) for ext in audio_exts):
+                temp_audio = self.file_path.rsplit(".", 1)[0] + ".mp3"
+                if not video2audio(self.file_path, temp_audio):
+                    raise Exception("音频转换失败，确保安装ffmpeg")
+                self.audio_path = temp_audio
+            else:
+                self.audio_path = self.file_path
+            
             # 根据选择的 ASR 引擎实例化相应的类
             if self.asr_engine == 'B 接口':
-                asr = BcutASR(self.file_path, use_cache=use_cache)
+                asr = BcutASR(self.audio_path, use_cache=use_cache)
             elif self.asr_engine == 'J 接口':
-                asr = JianYingASR(self.file_path, use_cache=use_cache)
+                asr = JianYingASR(self.audio_path, use_cache=use_cache)
             elif self.asr_engine == 'K 接口':
-                asr = KuaiShouASR(self.file_path, use_cache=use_cache)
+                asr = KuaiShouASR(self.audio_path, use_cache=use_cache)
             elif self.asr_engine == 'Whisper':
                 # from bk_asr.WhisperASR import WhisperASR
                 # asr = WhisperASR(self.file_path, use_cache=use_cache)
@@ -58,9 +79,18 @@ class ASRWorker(QRunnable):
 
             logging.info(f"开始处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
             result = asr.run()
-            result_text = result.to_srt()
+            
+            # 根据导出格式选择转换方法
+            save_ext = self.export_format.lower()
+            if save_ext == 'srt':
+                result_text = result.to_srt()
+            elif save_ext == 'ass':
+                result_text = result.to_ass()
+            elif save_ext == 'txt':
+                result_text = result.to_txt()
+                
             logging.info(f"完成处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
-            save_path = self.file_path.rsplit(".", 1)[0] + ".srt"
+            save_path = self.file_path.rsplit(".", 1)[0] + "." + save_ext
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(result_text)
             self.signals.finished.emit(self.file_path, result_text)
@@ -108,10 +138,25 @@ class ASRWidget(QWidget):
     def init_ui(self):
         layout = QVBoxLayout(self)
 
-        # ASR引擎选择下拉框
+        # ASR引擎选择区域
+        engine_layout = QHBoxLayout()
+        engine_label = BodyLabel("选择接口:", self)
+        engine_label.setFixedWidth(70)
         self.combo_box = ComboBox(self)
         self.combo_box.addItems(['B 接口', 'J 接口', 'K 接口', 'Whisper'])
-        layout.addWidget(self.combo_box)
+        engine_layout.addWidget(engine_label)
+        engine_layout.addWidget(self.combo_box)
+        layout.addLayout(engine_layout)
+
+        # 导出格式选择区域 
+        format_layout = QHBoxLayout()
+        format_label = BodyLabel("导出格式:", self)
+        format_label.setFixedWidth(70)
+        self.format_combo = ComboBox(self)
+        self.format_combo.addItems(['SRT', 'TXT', 'ASS'])
+        format_layout.addWidget(format_label)
+        format_layout.addWidget(self.format_combo)
+        layout.addLayout(format_layout)
 
         # 文件选择区域
         file_layout = QHBoxLayout()
@@ -287,7 +332,8 @@ class ASRWidget(QWidget):
     def process_file(self, file_path):
         """处理单个文件"""
         selected_engine = self.combo_box.currentText()
-        worker = ASRWorker(file_path, selected_engine)
+        selected_format = self.format_combo.currentText()
+        worker = ASRWorker(file_path, selected_engine, selected_format)
         worker.signals.finished.connect(self.update_table)
         worker.signals.errno.connect(self.handle_error)
         self.thread_pool.start(worker)
@@ -369,7 +415,8 @@ class ASRWidget(QWidget):
 
     def dropEvent(self, event):
         """拖拽释放事件"""
-        supported_formats = ('.mp3', '.wav', '.ogg', '.mp4', '.avi', '.mov', '.ts')
+        supported_formats = ('.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a', '.wma',  # 音频格式
+                           '.mp4', '.avi', '.mov', '.ts', '.mkv', '.wmv', '.flv', '.webm', '.rmvb')  # 视频格式
         files = [u.toLocalFile() for u in event.mimeData().urls()]
         for file in files:
             if os.path.isdir(file):
@@ -452,7 +499,28 @@ class MainWindow(FluentWindow):
         if title == "更新":
             sys.exit(0)
 
+def video2audio(input_file: str, output: str = "") -> bool:
+    """使用ffmpeg将视频转换为音频"""
+    # 创建output目录
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output = str(output)
 
+    cmd = [
+        'ffmpeg',
+        '-i', input_file,
+        '-ac', '1',
+        '-f', 'mp3',
+        '-af', 'aresample=async=1',
+        '-y',
+        output
+    ]
+    result = subprocess.run(cmd, capture_output=True, check=True, encoding='utf-8', errors='replace')
+
+    if result.returncode == 0 and Path(output).is_file():
+        return True
+    else:
+        return False
 
 def start():
     # enable dpi scale
