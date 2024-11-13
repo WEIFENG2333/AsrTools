@@ -1,0 +1,19 @@
+name: Feature Request 功能请求
+description: Create the request for a new feature 提出增加新功能的请求
+labels: ["enhancement"]
+body:
+- type: markdown
+  attributes:
+    value: |
+      ✨ 感谢您提出功能建议！请描述您希望的新功能，对于有用可行的建议我会努力实现的。
+      🌟 Thank you for your feature suggestion! Please describe the new feature you expect. Using English or Chinese.
+
+- type: textarea
+  id: feature
+  attributes:
+    label: 💡 预期的功能 Expected Feature
+    description: |
+      请详细描述您期望添加的功能，包括使用场景和希望达到的效果。
+      Please describe in detail the feature you want to add, including usage scenarios and desired effects.
+  validations:
+    required: true
