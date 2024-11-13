@@ -1,12 +1,8 @@
 # 🎤 AsrTools
 
-🎙️✨ **AsrTools**：智能语音转字幕文本工具
+**注意：更多强大功能已经在我另一个项目实现:**
 
- 对比 Github 目前多数的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是无需 GPU 和繁琐的本地配置。
-
-欢迎为项目给上一个 Star。
-
-注意：更多功能已经在这个项目实现，这个项目在无重大BUG不再加入新功能：[VideoCaptioner](https://github.com/WEIFENG2333/VideoCaptioner) 基于 LLM 的智能字幕助手，无需GPU一键高质量字幕视频合成！支持生成、断句、优化、翻译全流程。让视频字幕制作简单高效！
+** [VideoCaptioner](https://github.com/WEIFENG2333/VideoCaptioner) ** 基于 LLM 的智能字幕助手，无需GPU一键高质量字幕视频合成！支持生成、断句、优化、翻译全流程。让视频字幕制作简单高效！
 
 
 ## 🌟 **特色功能**
@@ -15,6 +11,14 @@
 - 🖥️ **高颜值界面**：基于 **PyQt5** 和 **qfluentwidgets**，界面美观且用户友好。
 - ⚡ **效率超人**：多线程并发 + 批量处理，文字转换快如闪电。
 - 📄 **多格式支持**：支持生成 `.srt` 和 `.txt` 、`ass`字幕文件，满足不同需求。
+
+ 对比 Github 目前多数的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是无需 GPU 和繁琐的本地配置。
+
+欢迎为项目给上一个 Star。
+
+*主界面截图示例*
+
+<img src="resources/main_window-1.1.0.png" width="80%" alt="主界面">
 
 
 ## 🌟 未来计划（TODO）
@@ -27,9 +31,6 @@
 
  以上计划均已经实现，请访问 [VideoCaptioner](https://github.com/WEIFENG2333/VideoCaptioner)
 
-*主界面截图示例*
-
-<img src="resources/main_window-1.1.0.png" width="80%" alt="主界面">
 
 ### 🖥️ **快速上手**
 
