@@ -1,9 +1,10 @@
-# 🎤 AsrTools
 
 **注意：更多强大功能已经在我另一个项目实现:**
 
-** [VideoCaptioner](https://github.com/WEIFENG2333/VideoCaptioner) ** 基于 LLM 的智能字幕助手，无需GPU一键高质量字幕视频合成！支持生成、断句、优化、翻译全流程。让视频字幕制作简单高效！
+ [VideoCaptioner](https://github.com/WEIFENG2333/VideoCaptioner) 基于 LLM 的智能字幕助手，无需GPU一键高质量字幕视频合成！支持生成、断句、优化、翻译全流程。让视频字幕制作简单高效！
 
+
+# 🎤 AsrTools
 
 ## 🌟 **特色功能**
 
@@ -12,11 +13,9 @@
 - ⚡ **效率超人**：多线程并发 + 批量处理，文字转换快如闪电。
 - 📄 **多格式支持**：支持生成 `.srt` 和 `.txt` 、`ass`字幕文件，满足不同需求。
 
- 对比 Github 目前多数的音频转换文字项目（通过调用 Wishper 等模型），本项目最大区别和优势就是无需 GPU 和繁琐的本地配置。
+欢迎为项目给上一个 Star ⭐ 。
 
-欢迎为项目给上一个 Star。
-
-*主界面截图示例*
+**主界面截图示例：**
 
 <img src="resources/main_window-1.1.0.png" width="80%" alt="主界面">
 
@@ -77,7 +76,6 @@
 
 ## 日志
 -  **（v1.1.0）已经增加视频文件支持🎥**：支持直接导入视频文件，自动转换为音频进行处理，无需手动转换。
-- [VideoCaptioner](https://github.com/WEIFENG2333/VideoCaptioner) 更多功能已经在这个项目实现，这个项目在无重大BUG不再加入新功能。
 
 ## 📬 **联系与支持**
 
