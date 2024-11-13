@@ -1,0 +1,59 @@
+name: Bug 报告 | Bug Report
+description: 报告程序错误以帮助我们改进 | Report a bug to help us improve
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢您抽出时间填写这份 bug 报告！
+        Thanks for taking the time to fill out this bug report!
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么？ | What happened?
+      description: |
+        请详细描述您遇到的问题，以及您期望看到的结果
+        Please describe what you saw and what you expected to see
+      placeholder: "当我..."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: 版本 | Version
+      description: 您正在使用的软件版本？
+      options:
+        - 最新发布版本 | Latest Release
+        - 开发版本 | Development Version
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统 | Operating System
+      options:
+        - Windows
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 相关日志 | Relevant log output
+      description: |
+        请复制并粘贴任何相关的日志输出。这将自动格式化为代码块。
+        Please copy and paste any relevant log output. This will be automatically formatted.
+      render: shell
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 补充信息 | Additional information
+      description: |
+        添加任何其他有关问题的上下文或截图
+        Add any other context or screenshots about the problem here
