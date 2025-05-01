@@ -236,7 +236,7 @@ class ASRWidget(QWidget):
 
         self.table.selectRow(current_row)
 
-        menu = RoundMenu(self)
+        menu = RoundMenu(parent=self)
         reprocess_action = Action(FIF.SYNC, "重新处理")
         delete_action = Action(FIF.DELETE, "删除任务")
         open_dir_action = Action(FIF.FOLDER, "打开文件目录")
