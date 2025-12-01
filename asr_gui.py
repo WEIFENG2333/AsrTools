@@ -22,6 +22,10 @@ from qfluentwidgets import (ComboBox, PushButton, LineEdit, TableWidget, FluentI
 from bk_asr.BcutASR import BcutASR
 from bk_asr.JianYingASR import JianYingASR
 from bk_asr.KuaiShouASR import KuaiShouASR
+from bk_asr.WhisperASR import WhisperASR
+                
+from moviepy import VideoFileClip
+import opencc
 
 # 设置日志配置
 logging.basicConfig(
@@ -70,26 +74,28 @@ class ASRWorker(QRunnable):
             elif self.asr_engine == 'K 接口':
                 asr = KuaiShouASR(self.audio_path, use_cache=use_cache)
             elif self.asr_engine == 'Whisper':
-                # from bk_asr.WhisperASR import WhisperASR
-                # asr = WhisperASR(self.file_path, use_cache=use_cache)
-                raise NotImplementedError("WhisperASR 暂未实现")
+                asr = WhisperASR(self.audio_path, use_cache=use_cache)
+                # raise NotImplementedError("WhisperASR 暂未实现")
             else:
                 raise ValueError(f"未知的 ASR 引擎: {self.asr_engine}")
 
             logging.info(f"开始处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
-            result = asr.run()
-            
+            result = asr._run()
             # 根据导出格式选择转换方法
             save_ext = self.export_format.lower()
-            if save_ext == 'srt':
-                result_text = result.to_srt()
-            elif save_ext == 'ass':
-                result_text = result.to_ass()
-            elif save_ext == 'txt':
-                result_text = result.to_txt()
-                
+            if self.asr_engine != 'Whisper':
+                if save_ext == 'srt':
+                    result_text = result.to_srt()
+                elif save_ext == 'ass':
+                    result_text = result.to_ass()
+                elif save_ext == 'txt':
+                    result_text = result.to_txt()
+            else:
+                result_text = result
             logging.info(f"完成处理文件: {self.file_path} 使用引擎: {self.asr_engine}")
             save_path = self.file_path.rsplit(".", 1)[0] + "." + save_ext
+            converter = opencc.OpenCC('s2t.json')
+            result_text = converter.convert(result_text) 
             with open(save_path, "w", encoding="utf-8") as f:
                 f.write(result_text)
             self.signals.finished.emit(self.file_path, result_text)
@@ -142,7 +148,8 @@ class ASRWidget(QWidget):
         engine_label = BodyLabel("选择接口:", self)
         engine_label.setFixedWidth(70)
         self.combo_box = ComboBox(self)
-        self.combo_box.addItems(['B 接口', 'J 接口', 'K 接口', 'Whisper'])
+        # self.combo_box.addItems(['B 接口', 'J 接口', 'K 接口', 'Whisper'])
+        self.combo_box.addItems(['B 接口', 'Whisper'])
         engine_layout.addWidget(engine_label)
         engine_layout.addWidget(self.combo_box)
         layout.addLayout(engine_layout)
@@ -499,27 +506,24 @@ class MainWindow(FluentWindow):
             sys.exit(0)
 
 def video2audio(input_file: str, output: str = "") -> bool:
+    logging.info("Translate to mp3")
     """使用ffmpeg将视频转换为音频"""
     # 创建output目录
-    output = Path(output)
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output = str(output)
+    output_path = Path(output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output = str(output_path)
+    logging.info("Path exit")
+    # try:
+    video = VideoFileClip(input_file)
+    audio = video.audio 
+    audio.write_audiofile(output)  
+    logging.info("Translate to mp3 success")
+    if output_path.is_file():
+            return True
+    # except FFmpeg.Error as e:
+    #     print(f"转换失败: {e.stderr.decode()}")
 
-    cmd = [
-        'ffmpeg',
-        '-i', input_file,
-        '-ac', '1',
-        '-f', 'mp3',
-        '-af', 'aresample=async=1',
-        '-y',
-        output
-    ]
-    result = subprocess.run(cmd, capture_output=True, check=True, encoding='utf-8', errors='replace')
-
-    if result.returncode == 0 and Path(output).is_file():
-        return True
-    else:
-        return False
+    return False
 
 def start():
     # enable dpi scale
