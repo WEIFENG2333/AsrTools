@@ -1,0 +1,117 @@
+name: Build Executables for Windows/Linux/macOS
+
+on:
+  push:
+    branches: [ main ]          # 当 main 分支有代码推送时触发
+    tags:
+      - 'v*'                   # 当推送 v* 标签时触发
+  release:
+    types: [created]            # 当创建 Release 时触发
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'   # 请根据你的项目需求选择合适的 Python 版本
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+
+    - name: Build GUI with PyInstaller (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pyinstaller --onedir --windowed --noconsole --strip --hidden-import PyQt5.QtCore --hidden-import PyQt5.QtGui --hidden-import PyQt5.QtWidgets --hidden-import qfluentwidgets --hidden-import requests --hidden-import urllib3 --hidden-import chardet --hidden-import idna --hidden-import certifi --hidden-import _ssl --hidden-import ssl --hidden-import _hashlib --hidden-import _socket --hidden-import http.client --hidden-import urllib.request --hidden-import urllib.parse --hidden-import urllib.error --hidden-import _ctypes --exclude-module torch --exclude-module torchvision --exclude-module torchaudio --exclude-module pandas --exclude-module scipy --exclude-module yaml --exclude-module setuptools --exclude-module pywin32 --exclude-module Pythonwin --exclude-module markupsafe --exclude-module PIL --exclude-module dateutil --exclude-module pytz --exclude-module google asr_gui.py
+        # 使用 Python 查找并复制必要的 DLL
+        python -c "import sys, os, shutil; dll_path = os.path.join(sys.prefix, 'DLLs'); [shutil.copy(os.path.join(dll_path, f), 'dist/asr_gui/_internal/') for f in ['libcrypto-3.dll', 'libssl-3.dll'] if os.path.exists(os.path.join(dll_path, f))]"
+        # 重命名产物，方便区分平台
+        mv dist/asr_gui dist/asr_gui-windows
+
+    - name: Build CLI with PyInstaller (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        pyinstaller --onedir --console --strip --hidden-import requests --hidden-import urllib3 --hidden-import chardet --hidden-import idna --hidden-import certifi --hidden-import _ssl --hidden-import ssl --hidden-import _hashlib --hidden-import _socket --hidden-import http.client --hidden-import urllib.request --hidden-import urllib.parse --hidden-import urllib.error --hidden-import _ctypes --exclude-module PyQt5 --exclude-module PyQt5.QtCore --exclude-module PyQt5.QtGui --exclude-module PyQt5.QtWidgets --exclude-module qfluentwidgets --exclude-module torch --exclude-module torchvision --exclude-module torchaudio --exclude-module pandas --exclude-module scipy --exclude-module yaml --exclude-module setuptools --exclude-module pywin32 --exclude-module Pythonwin --exclude-module markupsafe --exclude-module PIL --exclude-module dateutil --exclude-module pytz --exclude-module google --name asr_cli cli.py
+        # 使用 Python 查找并复制必要的 DLL
+        python -c "import sys, os, shutil; dll_path = os.path.join(sys.prefix, 'DLLs'); [shutil.copy(os.path.join(dll_path, f), 'dist/asr_cli/_internal/') for f in ['libcrypto-3.dll', 'libssl-3.dll'] if os.path.exists(os.path.join(dll_path, f))]"
+        # 重命名产物，方便区分平台
+        mv dist/asr_cli dist/asr_cli-windows
+
+    - name: Build GUI with PyInstaller (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pyinstaller --onedir --noconsole --strip --hidden-import PyQt5.QtCore --hidden-import PyQt5.QtGui --hidden-import PyQt5.QtWidgets --hidden-import qfluentwidgets --hidden-import requests --hidden-import urllib3 --hidden-import chardet --hidden-import idna --hidden-import certifi --hidden-import _ssl --hidden-import ssl --hidden-import _hashlib --hidden-import _socket --hidden-import http.client --hidden-import urllib.request --hidden-import urllib.parse --hidden-import urllib.error --hidden-import _ctypes --exclude-module torch --exclude-module torchvision --exclude-module torchaudio --exclude-module pandas --exclude-module scipy --exclude-module yaml --exclude-module setuptools --exclude-module pywin32 --exclude-module Pythonwin --exclude-module markupsafe --exclude-module PIL --exclude-module dateutil --exclude-module pytz --exclude-module google asr_gui.py
+        mv dist/asr_gui dist/asr_gui-linux
+
+    - name: Build CLI with PyInstaller (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        pyinstaller --onedir --console --strip --hidden-import requests --hidden-import urllib3 --hidden-import chardet --hidden-import idna --hidden-import certifi --hidden-import _ssl --hidden-import ssl --hidden-import _hashlib --hidden-import _socket --hidden-import http.client --hidden-import urllib.request --hidden-import urllib.parse --hidden-import urllib.error --hidden-import _ctypes --exclude-module PyQt5 --exclude-module PyQt5.QtCore --exclude-module PyQt5.QtGui --exclude-module PyQt5.QtWidgets --exclude-module qfluentwidgets --exclude-module torch --exclude-module torchvision --exclude-module torchaudio --exclude-module pandas --exclude-module scipy --exclude-module yaml --exclude-module setuptools --exclude-module pywin32 --exclude-module Pythonwin --exclude-module markupsafe --exclude-module PIL --exclude-module dateutil --exclude-module pytz --exclude-module google --name asr_cli cli.py
+        mv dist/asr_cli dist/asr_cli-linux
+
+    - name: Build GUI with PyInstaller (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --onedir --noconsole --strip --hidden-import PyQt5.QtCore --hidden-import PyQt5.QtGui --hidden-import PyQt5.QtWidgets --hidden-import qfluentwidgets --hidden-import requests --hidden-import urllib3 --hidden-import chardet --hidden-import idna --hidden-import certifi --hidden-import _ssl --hidden-import ssl --hidden-import _hashlib --hidden-import _socket --hidden-import http.client --hidden-import urllib.request --hidden-import urllib.parse --hidden-import urllib.error --hidden-import _ctypes --exclude-module torch --exclude-module torchvision --exclude-module torchaudio --exclude-module pandas --exclude-module scipy --exclude-module yaml --exclude-module setuptools --exclude-module pywin32 --exclude-module Pythonwin --exclude-module markupsafe --exclude-module PIL --exclude-module dateutil --exclude-module pytz --exclude-module google asr_gui.py
+        mv dist/asr_gui dist/asr_gui-macos
+
+    - name: Build CLI with PyInstaller (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        pyinstaller --onedir --console --strip --hidden-import requests --hidden-import urllib3 --hidden-import chardet --hidden-import idna --hidden-import certifi --hidden-import _ssl --hidden-import ssl --hidden-import _hashlib --hidden-import _socket --hidden-import http.client --hidden-import urllib.request --hidden-import urllib.parse --hidden-import urllib.error --hidden-import _ctypes --exclude-module PyQt5 --exclude-module PyQt5.QtCore --exclude-module PyQt5.QtGui --exclude-module PyQt5.QtWidgets --exclude-module qfluentwidgets --exclude-module torch --exclude-module torchvision --exclude-module torchaudio --exclude-module pandas --exclude-module scipy --exclude-module yaml --exclude-module setuptools --exclude-module pywin32 --exclude-module Pythonwin --exclude-module markupsafe --exclude-module PIL --exclude-module dateutil --exclude-module pytz --exclude-module google --name asr_cli cli.py
+        mv dist/asr_cli dist/asr_cli-macos
+
+    - name: Upload GUI as workflow artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: asr_gui-${{ matrix.os }}
+        path: dist/asr_gui-*
+
+    - name: Upload CLI as workflow artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: asr_cli-${{ matrix.os }}
+        path: dist/asr_cli-*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts/
+
+    - name: Create ZIP packages
+      run: |
+        cd artifacts
+        for dir in */; do
+          zip -r "${dir%/}.zip" "$dir"
+        done
+        ls -la
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        files: artifacts/*.zip
+        generate_release_notes: true

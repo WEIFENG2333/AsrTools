@@ -1,0 +1,9 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 产物
+build/
+dist/
+*.egg-info/
